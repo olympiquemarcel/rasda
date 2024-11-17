@@ -51,7 +51,7 @@ def parsIni():
     parser.add_argument('--reduction-factor', type=int, default=2, 
                     help='reduction factor to use for ASHA (default: 2)')    
     parser.add_argument('--scaling-factor', type=int, default=2, 
-                    help='reduction factor to use for R-ASHA, should be same as reduction factor (default: 2)')    
+                    help='reduction factor to use for RASDA, should be same as reduction factor (default: 2)')    
     return parser
 
 
