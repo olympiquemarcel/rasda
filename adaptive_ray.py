@@ -73,7 +73,7 @@ def main(args):
         "rescale_warmup_steps": tune.choice([1,2]),
         "kernel_size": tune.choice([3]),
         "conv_init": tune.choice(["kaiming", "xavier"]),
-        "model": tune.choice([18]),
+        "model": tune.choice([50]),
         "bs": tune.choice([128]),    
         "data_dir": tune.choice([args.data_dir]),
         "workers": tune.choice([args.num_workers]),
