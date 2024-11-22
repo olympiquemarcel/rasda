@@ -1,11 +1,11 @@
 #!/bin/bash
 # shellcheck disable=SC2206
-#SBATCH --job-name=test
-#SBATCH --account=test
-#SBATCH --output=test.out
-#SBATCH --error=test.err
-#SBATCH --partition=dc-gpu-devel
-#SBATCH --account=jhpc54
+#SBATCH --job-name=RASDA
+#SBATCH --account=
+#SBATCH --output=RASDA.out
+#SBATCH --error=RASDA.err
+#SBATCH --partition=booster
+#SBATCH --account=
 #SBATCH --nodes=4
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=48
@@ -21,11 +21,6 @@ ml NCCL/default-CUDA-12 PyTorch/2.1.2 torchvision/0.16.2
 
 source ray_juwels_env/bin/activate
 
-export NCCL_SOCKET_IFNAME="ib0"
-
-export PYTHONPATH="${PYTHONPATH}:$PWD"
-
-
 dataDir="//p/scratch/cslfse/aach1/imagenet-1K-tfrecords"
 storagePath="/p/scratch/cslfse/aach1/ray_results"
 
@@ -35,9 +30,11 @@ COMMAND="adaptive_ray.py --scheduler ASHA --num-samples 4  --num-workers 4 --num
 echo $COMMAND
 echo "NUM NODES: ${SLURM_JOB_NUM_NODES}"
 
-# make sure CUDA devices are visible
+# CUDA, InfiniBand, srun and python flags
 export CUDA_VISIBLE_DEVICES="0,1,2,3"
 export SRUN_CPUS_PER_TASK=${SLURM_CPUS_PER_TASK}
+export NCCL_SOCKET_IFNAME="ib0"
+export PYTHONPATH="${PYTHONPATH}:$PWD"
 
 num_gpus=4
 
@@ -58,9 +55,8 @@ head_node=${nodes_array[0]}
 
 port=37465
 
-## IP_HEAD WITH IB
+# InfiniBand version of IP address
 export ip_head="$head_node"i:"$port"
-export head_node_ip="$head_node"i
 
 
 echo "Starting HEAD at $head_node"
@@ -74,7 +70,7 @@ for ((i = 1; i <= worker_num; i++)); do
     node_i=${nodes_array[$i]}
     echo "Starting WORKER $i at $node_i"
     srun --nodes=1 --ntasks=1 -w "$node_i" \
-        ray start --address "$head_node"i:"$port" --node-ip-address="$node_i"i --redis-password='5241590000000000' \
+        ray start --address "$head_node"i:"$port" --node-ip-address="$node_i"i \
         --num-cpus "${SLURM_CPUS_PER_TASK}" --num-gpus $num_gpus --block &
     ##sleep 5
 done
